@@ -1,0 +1,12 @@
+{
+  "appId": "com.lendtrack.app",
+  "appName": "LendTrack",
+  "webDir": "dist",
+  "server": {
+    "url": "https://lendtrack-app-main.vercel.app",
+    "cleartext": false
+  },
+  "android": {
+    "backgroundColor": "#ffffff"
+  }
+}
