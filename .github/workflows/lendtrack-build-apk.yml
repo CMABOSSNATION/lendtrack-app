@@ -1,0 +1,73 @@
+name: Build LendTrack APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Capacitor v5 pinned
+        run: |
+          npm install @capacitor/core@5.7.4 @capacitor/cli@5.7.4 @capacitor/android@5.7.4 --save-exact
+
+      - name: Build Vite app
+        run: npm run build
+        env:
+          VITE_API_URL: https://lendtrack-backend-mcci.onrender.com/api
+
+      - name: Add Android platform
+        run: |
+          npx cap add android
+          npx cap sync android
+
+      - name: Patch build.gradle to fix Kotlin duplicate class
+        run: |
+          cat >> android/app/build.gradle << 'GRADLE'
+
+          configurations.all {
+            resolutionStrategy {
+              force 'org.jetbrains.kotlin:kotlin-stdlib:1.9.10'
+              force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.10'
+              force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10'
+            }
+          }
+          GRADLE
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
+      - name: Build Debug APK
+        run: |
+          cd android
+          ./gradlew assembleDebug --no-daemon --warning-mode all
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: LendTrack-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
