@@ -3,7 +3,7 @@
   "appName": "LendTrack",
   "webDir": "dist",
   "server": {
-    "url": "https://lendtrack-app-main.vercel.app",
+    "url": "https://lendtrack-app.vercel.app/",
     "cleartext": false
   },
   "android": {
